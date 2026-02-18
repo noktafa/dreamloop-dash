@@ -1,11 +1,14 @@
 """dreamloop-dash — real-time dashboard and visual reports for dreamloop."""
 
 import json
+import os
+import secrets
 import asyncio
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
@@ -14,6 +17,21 @@ from fastapi.responses import HTMLResponse
 app = FastAPI(title="dreamloop-dash")
 app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
+
+# --- Auth ---
+security = HTTPBasic()
+DASH_USER = os.environ.get("DASH_USER", "")
+DASH_PASS = os.environ.get("DASH_PASS", "")
+
+
+def verify(credentials: HTTPBasicCredentials = Depends(security)):
+    if not DASH_USER or not DASH_PASS:
+        return  # Auth disabled if env vars not set
+    user_ok = secrets.compare_digest(credentials.username.encode(), DASH_USER.encode())
+    pass_ok = secrets.compare_digest(credentials.password.encode(), DASH_PASS.encode())
+    if not (user_ok and pass_ok):
+        raise HTTPException(status_code=401, detail="Unauthorized", headers={"WWW-Authenticate": "Basic"})
+
 
 # In-memory state
 state = {
@@ -116,15 +134,15 @@ async def pipeline_finish(request: Request):
 # --- Dashboard pages ---
 
 @app.get("/", response_class=HTMLResponse)
-async def dashboard(request: Request):
+async def dashboard(request: Request, _=Depends(verify)):
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
 
 @app.get("/report", response_class=HTMLResponse)
-async def report(request: Request):
+async def report(request: Request, _=Depends(verify)):
     return templates.TemplateResponse("report.html", {"request": request, "state": json.dumps(state)})
 
 
 @app.get("/api/state")
-async def get_state():
+async def get_state(_=Depends(verify)):
     return state
