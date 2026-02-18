@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dreamloop — Report</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface2: #1a2332;
+    --border: #1e2d3d;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --accent: #3b82f6;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --purple: #8b5cf6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px;
+  }
+  .report-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .report-header h1 { font-size: 28px; margin-bottom: 8px; }
+  .report-header h1 span { color: var(--accent); }
+  .report-header .subtitle { color: var(--text-dim); font-size: 13px; }
+
+  .outcome {
+    text-align: center;
+    padding: 32px;
+    margin-bottom: 32px;
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .outcome-status {
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .outcome-status.converged { color: var(--green); }
+  .outcome-status.max_reached { color: var(--yellow); }
+  .outcome-sub { color: var(--text-dim); font-size: 14px; }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+  }
+  .metric-value { font-size: 36px; font-weight: 700; }
+  .metric-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+  .metric-delta { font-size: 13px; margin-top: 6px; }
+  .delta-good { color: var(--green); }
+  .delta-bad { color: var(--red); }
+  .delta-neutral { color: var(--text-dim); }
+
+  .section { margin-bottom: 32px; }
+  .section-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Iteration timeline */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+  .tl-item {
+    position: relative;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 22px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+  }
+  .tl-item.pass::before { background: var(--green); }
+  .tl-item.fail::before { background: var(--red); }
+  .tl-num { font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+  .tl-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .tl-step {
+    background: var(--surface2);
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .tl-step-name { font-weight: 600; margin-bottom: 4px; text-transform: capitalize; }
+  .tl-step-detail { color: var(--text-dim); }
+
+  /* Chart */
+  .svg-chart { width: 100%; height: 240px; }
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .legend {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 12px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  .back-link {
+    display: inline-block;
+    margin-bottom: 24px;
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 13px;
+  }
+  .back-link:hover { text-decoration: underline; }
+
+  @media print {
+    body { background: white; color: #111; }
+    .back-link { display: none; }
+    .metric, .tl-item, .chart-card, .outcome { border-color: #ddd; background: #f9f9f9; }
+    :root { --text-dim: #666; --border: #ddd; --surface: #f9f9f9; --surface2: #eee; }
+  }
+</style>
+</head>
+<body>
+
+<a href="/" class="back-link">← Back to Dashboard</a>
+
+<div class="report-header">
+  <h1><span>dream</span>loop — Report</h1>
+  <div class="subtitle" id="reportTime"></div>
+</div>
+
+<div class="outcome" id="outcome">
+  <div class="outcome-status" id="outcomeStatus">—</div>
+  <div class="outcome-sub" id="outcomeSub"></div>
+</div>
+
+<div class="metrics" id="metrics"></div>
+
+<div class="section">
+  <div class="section-title">Improvement Trend</div>
+  <div class="chart-card">
+    <svg class="svg-chart" id="svgChart"></svg>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> Findings</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div> Fixes</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> Vulnerabilities</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Iteration Timeline</div>
+  <div class="timeline" id="timeline"></div>
+</div>
+
+<script>
+const stateJSON = {{ state | safe }};
+let state = typeof stateJSON === 'string' ? JSON.parse(stateJSON) : stateJSON;
+
+// If page loaded without embedded state, fetch it
+if (!state || !state.iterations) {
+  fetch('/api/state').then(r => r.json()).then(s => { state = s; render(); });
+} else {
+  render();
+}
+
+function render() {
+  // Timestamps
+  const started = state.started_at ? new Date(state.started_at).toLocaleString() : '';
+  const finished = state.finished_at ? new Date(state.finished_at).toLocaleString() : 'in progress';
+  document.getElementById('reportTime').textContent = `${started} → ${finished}`;
+
+  // Outcome
+  const statusEl = document.getElementById('outcomeStatus');
+  const status = state.status || 'idle';
+  if (status === 'converged') {
+    statusEl.textContent = 'CONVERGED';
+    statusEl.className = 'outcome-status converged';
+    document.getElementById('outcomeSub').textContent = 'System reached stable state — no new findings';
+  } else if (status === 'max_reached') {
+    statusEl.textContent = 'MAX ITERATIONS';
+    statusEl.className = 'outcome-status max_reached';
+    document.getElementById('outcomeSub').textContent = 'Pipeline stopped at iteration limit — findings may remain';
+  } else {
+    statusEl.textContent = status.toUpperCase();
+  }
+
+  // Compute totals
+  const iterations = state.iterations || [];
+  let totalFindings = 0, totalFixes = 0, totalVulns = 0;
+  let firstFindings = 0, lastFindings = 0;
+  const perIter = iterations.map((it, i) => {
+    const steps = it.steps || {};
+    const f = steps.diagnose ? (steps.diagnose.findings || []).length : 0;
+    const x = steps.fix ? (steps.fix.findings || []).filter(a => a.applied).length : 0;
+    const v = steps.attack ? (steps.attack.findings || []).length : 0;
+    totalFindings += f;
+    totalFixes += x;
+    totalVulns += v;
+    if (i === 0) firstFindings = f;
+    if (i === iterations.length - 1) lastFindings = f;
+    return { num: it.number, findings: f, fixes: x, vulns: v, steps };
+  });
+
+  const delta = firstFindings - lastFindings;
+
+  // Metrics
+  const metricsEl = document.getElementById('metrics');
+  const metricsData = [
+    { value: iterations.length, label: 'Iterations', color: 'var(--accent)' },
+    { value: totalFindings, label: 'Total Findings', color: 'var(--red)' },
+    { value: totalFixes, label: 'Fixes Applied', color: 'var(--green)' },
+    { value: totalVulns, label: 'Vulnerabilities', color: 'var(--yellow)' },
+    { value: delta >= 0 ? `+${delta}` : `${delta}`, label: 'Findings Reduced', color: delta > 0 ? 'var(--green)' : delta < 0 ? 'var(--red)' : 'var(--text-dim)' },
+  ];
+  metricsEl.innerHTML = metricsData.map(m => `
+    <div class="metric">
+      <div class="metric-value" style="color:${m.color}">${m.value}</div>
+      <div class="metric-label">${m.label}</div>
+    </div>
+  `).join('');
+
+  // SVG Chart
+  renderChart(perIter);
+
+  // Timeline
+  renderTimeline(iterations);
+}
+
+function renderChart(data) {
+  const svg = document.getElementById('svgChart');
+  if (!data.length) return;
+
+  const w = svg.clientWidth || 700;
+  const h = 220;
+  const pad = { t: 20, r: 40, b: 40, l: 50 };
+  const pw = w - pad.l - pad.r;
+  const ph = h - pad.t - pad.b;
+
+  let maxVal = Math.max(1, ...data.flatMap(d => [d.findings, d.fixes, d.vulns]));
+  const xStep = data.length > 1 ? pw / (data.length - 1) : pw / 2;
+
+  function y(val) { return pad.t + ph - (val / maxVal) * ph; }
+  function x(i) { return pad.l + (data.length > 1 ? i * xStep : pw / 2); }
+
+  let svgContent = '';
+
+  // Grid lines
+  for (let i = 0; i <= 4; i++) {
+    const gy = pad.t + (ph / 4) * i;
+    const val = Math.round(maxVal * (1 - i / 4));
+    svgContent += `<line x1="${pad.l}" y1="${gy}" x2="${w - pad.r}" y2="${gy}" stroke="#1e2d3d" stroke-width="1"/>`;
+    svgContent += `<text x="${pad.l - 8}" y="${gy + 4}" fill="#64748b" font-size="10" text-anchor="end" font-family="monospace">${val}</text>`;
+  }
+
+  // X labels
+  data.forEach((d, i) => {
+    svgContent += `<text x="${x(i)}" y="${h - 8}" fill="#64748b" font-size="10" text-anchor="middle" font-family="monospace">#${d.num}</text>`;
+  });
+
+  // Lines
+  const series = [
+    { key: 'findings', color: '#ef4444' },
+    { key: 'fixes', color: '#10b981' },
+    { key: 'vulns', color: '#f59e0b' },
+  ];
+
+  series.forEach(s => {
+    const points = data.map((d, i) => `${x(i)},${y(d[s.key])}`).join(' ');
+    svgContent += `<polyline points="${points}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    data.forEach((d, i) => {
+      svgContent += `<circle cx="${x(i)}" cy="${y(d[s.key])}" r="4" fill="${s.color}"/>`;
+    });
+  });
+
+  svg.innerHTML = svgContent;
+}
+
+function renderTimeline(iterations) {
+  const container = document.getElementById('timeline');
+  container.innerHTML = iterations.map(it => {
+    const steps = it.steps || {};
+    const hasFail = steps.validate && steps.validate.success === false;
+    const cls = hasFail ? 'fail' : 'pass';
+
+    const stepCards = ['diagnose', 'fix', 'attack', 'validate'].map(s => {
+      const step = steps[s];
+      if (!step) return `<div class="tl-step"><div class="tl-step-name">${s}</div><div class="tl-step-detail">skipped</div></div>`;
+      return `<div class="tl-step"><div class="tl-step-name">${s}</div><div class="tl-step-detail">${step.summary || '—'}</div></div>`;
+    }).join('');
+
+    return `<div class="tl-item ${cls}">
+      <div class="tl-num">Iteration ${it.number}</div>
+      <div class="tl-steps">${stepCards}</div>
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>

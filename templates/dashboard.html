@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dreamloop — dashboard</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface2: #1a2332;
+    --border: #1e2d3d;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --accent: #3b82f6;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --purple: #8b5cf6;
+    --cyan: #06b6d4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .header h1 {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+  .header h1 span { color: var(--accent); }
+  .status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .status-idle { background: var(--surface2); color: var(--text-dim); }
+  .status-running { background: #1e3a5f; color: var(--accent); animation: pulse 2s infinite; }
+  .status-converged { background: #064e3b; color: var(--green); }
+  .status-max_reached { background: #451a03; color: var(--yellow); }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding: 24px 32px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .card-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  .full-width { grid-column: 1 / -1; }
+
+  /* Pipeline steps */
+  .steps {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .step-box {
+    flex: 1;
+    padding: 16px;
+    background: var(--surface2);
+    border-radius: 6px;
+    text-align: center;
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+  .step-box.active {
+    border-color: var(--accent);
+    background: #1e3a5f;
+    box-shadow: 0 0 20px rgba(59,130,246,0.15);
+  }
+  .step-box.done { border-color: var(--green); }
+  .step-box.error { border-color: var(--red); }
+  .step-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .step-status { font-size: 11px; color: var(--text-dim); }
+  .step-arrow { color: var(--text-dim); font-size: 18px; }
+
+  /* Findings feed */
+  .feed { max-height: 400px; overflow-y: auto; }
+  .feed-item {
+    padding: 10px 12px;
+    border-left: 3px solid var(--border);
+    margin-bottom: 8px;
+    background: var(--surface2);
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+  }
+  .feed-item.high { border-left-color: var(--red); }
+  .feed-item.medium { border-left-color: var(--yellow); }
+  .feed-item.low { border-left-color: var(--green); }
+  .feed-item .severity {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  /* Chart area */
+  .chart-container {
+    height: 200px;
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    padding: 16px 0;
+    justify-content: center;
+  }
+  .chart-bar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 150px;
+  }
+  .chart-bar {
+    width: 28px;
+    border-radius: 3px 3px 0 0;
+    transition: height 0.5s ease;
+    min-height: 2px;
+  }
+  .chart-bar.findings { background: var(--red); }
+  .chart-bar.fixes { background: var(--green); }
+  .chart-bar.vulns { background: var(--yellow); }
+  .chart-label { font-size: 11px; color: var(--text-dim); }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+    justify-content: center;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* Stats row */
+  .stats {
+    display: flex;
+    gap: 32px;
+  }
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+  .stat-value.green { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.blue { color: var(--accent); }
+  .stat-value.yellow { color: var(--yellow); }
+
+  /* Connection indicator */
+  .conn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .conn-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+  }
+  .conn-dot.connected { background: var(--green); }
+
+  /* Report link */
+  .report-link {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 8px 16px;
+    background: var(--accent);
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .report-link:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span>dream</span>loop</h1>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="conn">
+      <div class="conn-dot" id="connDot"></div>
+      <span id="connText">disconnected</span>
+    </div>
+    <div class="status-badge status-idle" id="statusBadge">idle</div>
+  </div>
+</div>
+
+<div class="grid">
+  <!-- Pipeline Steps -->
+  <div class="card full-width">
+    <div class="card-title">Pipeline — Iteration <span id="iterNum">0</span></div>
+    <div class="steps">
+      <div class="step-box" id="step-diagnose">
+        <div class="step-name">Diagnose</div>
+        <div class="step-status" id="step-diagnose-status">waiting</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-box" id="step-fix">
+        <div class="step-name">Fix</div>
+        <div class="step-status" id="step-fix-status">waiting</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-box" id="step-attack">
+        <div class="step-name">Attack</div>
+        <div class="step-status" id="step-attack-status">waiting</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-box" id="step-validate">
+        <div class="step-name">Validate</div>
+        <div class="step-status" id="step-validate-status">waiting</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="card full-width">
+    <div class="card-title">Summary</div>
+    <div class="stats">
+      <div>
+        <div class="stat-value blue" id="statIter">0</div>
+        <div class="stat-label">iterations</div>
+      </div>
+      <div>
+        <div class="stat-value red" id="statFindings">0</div>
+        <div class="stat-label">findings</div>
+      </div>
+      <div>
+        <div class="stat-value green" id="statFixes">0</div>
+        <div class="stat-label">fixes applied</div>
+      </div>
+      <div>
+        <div class="stat-value yellow" id="statVulns">0</div>
+        <div class="stat-label">vulnerabilities</div>
+      </div>
+      <div>
+        <div class="stat-value" id="statTests" style="color:var(--text-dim)">—</div>
+        <div class="stat-label">tests</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="card">
+    <div class="card-title">Findings Over Iterations</div>
+    <div class="chart-container" id="chart"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Findings</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Fixes</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div> Vulnerabilities</div>
+    </div>
+  </div>
+
+  <!-- Live Feed -->
+  <div class="card">
+    <div class="card-title">Live Feed</div>
+    <div class="feed" id="feed"></div>
+  </div>
+</div>
+
+<div style="padding:0 32px 24px">
+  <a href="/report" class="report-link" id="reportLink" style="display:none">View Final Report</a>
+</div>
+
+<script>
+const stepNames = ['diagnose', 'fix', 'attack', 'validate'];
+let ws;
+let reconnectTimer;
+
+function connect() {
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${proto}//${location.host}/ws`);
+
+  ws.onopen = () => {
+    document.getElementById('connDot').classList.add('connected');
+    document.getElementById('connText').textContent = 'connected';
+  };
+
+  ws.onclose = () => {
+    document.getElementById('connDot').classList.remove('connected');
+    document.getElementById('connText').textContent = 'reconnecting...';
+    reconnectTimer = setTimeout(connect, 2000);
+  };
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    handleMessage(msg);
+  };
+}
+
+function handleMessage(msg) {
+  switch (msg.type) {
+    case 'state':
+      applyFullState(msg.data);
+      break;
+    case 'pipeline_start':
+      resetUI();
+      setStatus('running');
+      break;
+    case 'iteration_start':
+      document.getElementById('iterNum').textContent = msg.data.number;
+      document.getElementById('statIter').textContent = msg.data.number;
+      stepNames.forEach(s => {
+        document.getElementById(`step-${s}`).className = 'step-box';
+        document.getElementById(`step-${s}-status`).textContent = 'waiting';
+      });
+      addFeedItem(`Iteration ${msg.data.number} started`, 'low');
+      break;
+    case 'step_start':
+      setStepActive(msg.data.step);
+      break;
+    case 'step_complete':
+      setStepDone(msg.data.step, msg.data.result);
+      break;
+    case 'pipeline_finish':
+      setStatus(msg.data.status);
+      applyFullState(msg.data);
+      document.getElementById('reportLink').style.display = 'inline-block';
+      break;
+  }
+}
+
+function applyFullState(s) {
+  setStatus(s.status);
+  document.getElementById('iterNum').textContent = s.current_iteration || 0;
+  document.getElementById('statIter').textContent = (s.iterations || []).length;
+
+  let totalFindings = 0, totalFixes = 0, totalVulns = 0;
+  (s.iterations || []).forEach(it => {
+    const steps = it.steps || {};
+    if (steps.diagnose) totalFindings += (steps.diagnose.findings || []).length;
+    if (steps.fix) totalFixes += (steps.fix.findings || []).filter(f => f.applied).length;
+    if (steps.attack) totalVulns += (steps.attack.findings || []).length;
+  });
+  document.getElementById('statFindings').textContent = totalFindings;
+  document.getElementById('statFixes').textContent = totalFixes;
+  document.getElementById('statVulns').textContent = totalVulns;
+
+  const lastIt = (s.iterations || []).slice(-1)[0];
+  if (lastIt && lastIt.steps && lastIt.steps.validate) {
+    const v = lastIt.steps.validate;
+    const raw = v.raw || {};
+    document.getElementById('statTests').textContent = `${raw.passed || 0}/${raw.total || 0}`;
+    document.getElementById('statTests').style.color = v.success ? 'var(--green)' : 'var(--red)';
+  }
+
+  if (s.status !== 'idle' && s.status !== 'running') {
+    document.getElementById('reportLink').style.display = 'inline-block';
+  }
+
+  updateChart(s.iterations || []);
+}
+
+function setStatus(status) {
+  const badge = document.getElementById('statusBadge');
+  badge.className = `status-badge status-${status}`;
+  badge.textContent = status;
+}
+
+function setStepActive(step) {
+  const el = document.getElementById(`step-${step}`);
+  if (el) {
+    el.className = 'step-box active';
+    document.getElementById(`step-${step}-status`).textContent = 'running...';
+  }
+  addFeedItem(`${step} started`, 'low');
+}
+
+function setStepDone(step, result) {
+  const el = document.getElementById(`step-${step}`);
+  if (!el) return;
+  const ok = result.success !== false;
+  el.className = `step-box ${ok ? 'done' : 'error'}`;
+  document.getElementById(`step-${step}-status`).textContent = result.summary || (ok ? 'done' : 'error');
+
+  // Update stats
+  if (step === 'diagnose') {
+    const count = (result.findings || []).length;
+    document.getElementById('statFindings').textContent =
+      parseInt(document.getElementById('statFindings').textContent) + count;
+    (result.findings || []).forEach(f => addFeedItem(f.summary || JSON.stringify(f), severityClass(f.severity)));
+  }
+  if (step === 'fix') {
+    const applied = (result.findings || []).filter(f => f.applied).length;
+    document.getElementById('statFixes').textContent =
+      parseInt(document.getElementById('statFixes').textContent) + applied;
+  }
+  if (step === 'attack') {
+    const count = (result.findings || []).length;
+    document.getElementById('statVulns').textContent =
+      parseInt(document.getElementById('statVulns').textContent) + count;
+    (result.findings || []).forEach(f => addFeedItem(f.summary || JSON.stringify(f), severityClass(f.severity)));
+  }
+  if (step === 'validate') {
+    const raw = result.raw || {};
+    document.getElementById('statTests').textContent = `${raw.passed || 0}/${raw.total || 0}`;
+    document.getElementById('statTests').style.color = result.success ? 'var(--green)' : 'var(--red)';
+  }
+}
+
+function severityClass(sev) {
+  if (!sev) return 'low';
+  sev = sev.toUpperCase();
+  if (sev === 'CRITICAL' || sev === 'HIGH' || sev === 'ERROR') return 'high';
+  if (sev === 'MEDIUM' || sev === 'WARNING') return 'medium';
+  return 'low';
+}
+
+function addFeedItem(text, cls) {
+  const feed = document.getElementById('feed');
+  const div = document.createElement('div');
+  div.className = `feed-item ${cls || ''}`;
+  div.textContent = text;
+  feed.prepend(div);
+  if (feed.children.length > 100) feed.lastChild.remove();
+}
+
+function updateChart(iterations) {
+  const container = document.getElementById('chart');
+  container.innerHTML = '';
+  if (!iterations.length) return;
+
+  let maxVal = 1;
+  const data = iterations.map(it => {
+    const steps = it.steps || {};
+    const f = steps.diagnose ? (steps.diagnose.findings || []).length : 0;
+    const x = steps.fix ? (steps.fix.findings || []).filter(a => a.applied).length : 0;
+    const v = steps.attack ? (steps.attack.findings || []).length : 0;
+    maxVal = Math.max(maxVal, f, x, v);
+    return { num: it.number, findings: f, fixes: x, vulns: v };
+  });
+
+  data.forEach(d => {
+    const group = document.createElement('div');
+    group.className = 'chart-bar-group';
+    const bars = document.createElement('div');
+    bars.className = 'chart-bars';
+
+    ['findings', 'fixes', 'vulns'].forEach(key => {
+      const bar = document.createElement('div');
+      bar.className = `chart-bar ${key}`;
+      bar.style.height = `${(d[key] / maxVal) * 140}px`;
+      bar.title = `${key}: ${d[key]}`;
+      bars.appendChild(bar);
+    });
+
+    const label = document.createElement('div');
+    label.className = 'chart-label';
+    label.textContent = `#${d.num}`;
+    group.appendChild(bars);
+    group.appendChild(label);
+    container.appendChild(group);
+  });
+}
+
+function resetUI() {
+  document.getElementById('statIter').textContent = '0';
+  document.getElementById('statFindings').textContent = '0';
+  document.getElementById('statFixes').textContent = '0';
+  document.getElementById('statVulns').textContent = '0';
+  document.getElementById('statTests').textContent = '—';
+  document.getElementById('statTests').style.color = 'var(--text-dim)';
+  document.getElementById('feed').innerHTML = '';
+  document.getElementById('chart').innerHTML = '';
+  document.getElementById('reportLink').style.display = 'none';
+}
+
+connect();
+</script>
+</body>
+</html>
