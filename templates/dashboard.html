@@ -34,11 +34,7 @@
     border-bottom: 1px solid var(--border);
     background: var(--surface);
   }
-  .header h1 {
-    font-size: 20px;
-    font-weight: 600;
-    letter-spacing: -0.5px;
-  }
+  .header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.5px; }
   .header h1 span { color: var(--accent); }
   .status-badge {
     padding: 4px 12px;
@@ -76,11 +72,7 @@
   .full-width { grid-column: 1 / -1; }
 
   /* Pipeline steps */
-  .steps {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
+  .steps { display: flex; gap: 8px; align-items: center; }
   .step-box {
     flex: 1;
     padding: 16px;
@@ -101,6 +93,86 @@
   .step-status { font-size: 11px; color: var(--text-dim); }
   .step-arrow { color: var(--text-dim); font-size: 18px; }
 
+  /* Timing waterfall (Panel A) */
+  .waterfall { display: flex; flex-direction: column; gap: 8px; }
+  .wf-row { display: flex; align-items: center; gap: 12px; }
+  .wf-label { width: 80px; font-size: 11px; color: var(--text-dim); text-align: right; }
+  .wf-bar-bg { flex: 1; height: 24px; background: var(--surface2); border-radius: 4px; overflow: hidden; position: relative; }
+  .wf-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 10px;
+    font-weight: 600;
+    color: white;
+    min-width: 0;
+  }
+  .wf-bar.diagnose { background: var(--cyan); }
+  .wf-bar.fix { background: var(--accent); }
+  .wf-bar.attack { background: var(--yellow); }
+  .wf-bar.validate { background: var(--purple); }
+  .wf-bar.active { animation: barPulse 1.5s infinite; }
+  @keyframes barPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+  .wf-time { width: 60px; font-size: 11px; color: var(--text-dim); }
+
+  /* Stats row */
+  .stats { display: flex; gap: 24px; flex-wrap: wrap; }
+  .stat-value { font-size: 28px; font-weight: 700; line-height: 1; }
+  .stat-label { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+  .stat-value.green { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.blue { color: var(--accent); }
+  .stat-value.yellow { color: var(--yellow); }
+  .stat-value.cyan { color: var(--cyan); }
+  .stat-divider { width: 1px; background: var(--border); align-self: stretch; margin: 0 4px; }
+
+  /* Safety monitor (Panel B) */
+  .safety-rings { display: flex; gap: 24px; justify-content: center; margin-bottom: 16px; }
+  .ring-wrap { text-align: center; }
+  .ring-label { font-size: 10px; color: var(--text-dim); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .ring-value { font-size: 18px; font-weight: 700; }
+  .safety-log { max-height: 180px; overflow-y: auto; }
+  .safety-event {
+    padding: 6px 10px;
+    margin-bottom: 4px;
+    background: var(--surface2);
+    border-radius: 4px;
+    font-size: 11px;
+    border-left: 3px solid var(--border);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .safety-event.executed { border-left-color: var(--green); }
+  .safety-event.blocked { border-left-color: var(--red); }
+  .safety-event.denied { border-left-color: var(--yellow); }
+  .safety-event .se-badge {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .se-badge.executed { background: #064e3b; color: var(--green); }
+  .se-badge.blocked { background: #450a0a; color: var(--red); }
+  .se-badge.denied { background: #451a03; color: var(--yellow); }
+  .safety-event .se-cmd { color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Topology map (Panel C) */
+  .topo-svg { width: 100%; height: 280px; }
+  .topo-node rect { fill: var(--surface2); stroke: var(--border); stroke-width: 1; rx: 6; }
+  .topo-node text { fill: var(--text-dim); font-size: 10px; font-family: 'JetBrains Mono', monospace; }
+  .topo-node .node-role { fill: var(--text); font-size: 11px; font-weight: 600; }
+  .topo-link { stroke: var(--border); stroke-width: 1.5; }
+  .topo-node.active rect { stroke: var(--accent); stroke-width: 2; filter: drop-shadow(0 0 8px rgba(59,130,246,0.3)); }
+  .topo-node.active .node-role { fill: var(--accent); }
+  .topo-node.finding rect { stroke: var(--red); stroke-width: 2; }
+  .topo-node.healthy rect { stroke: var(--green); stroke-width: 1.5; }
+
   /* Findings feed */
   .feed { max-height: 400px; overflow-y: auto; }
   .feed-item {
@@ -114,89 +186,54 @@
   .feed-item.high { border-left-color: var(--red); }
   .feed-item.medium { border-left-color: var(--yellow); }
   .feed-item.low { border-left-color: var(--green); }
-  .feed-item .severity {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    margin-bottom: 2px;
-  }
 
-  /* Chart area */
-  .chart-container {
-    height: 200px;
-    display: flex;
-    align-items: flex-end;
-    gap: 24px;
-    padding: 16px 0;
-    justify-content: center;
-  }
-  .chart-bar-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-  }
-  .chart-bars {
-    display: flex;
-    align-items: flex-end;
-    gap: 4px;
-    height: 150px;
-  }
-  .chart-bar {
-    width: 28px;
-    border-radius: 3px 3px 0 0;
-    transition: height 0.5s ease;
-    min-height: 2px;
-  }
-  .chart-bar.findings { background: var(--red); }
-  .chart-bar.fixes { background: var(--green); }
-  .chart-bar.vulns { background: var(--yellow); }
-  .chart-label { font-size: 11px; color: var(--text-dim); }
-
-  /* Legend */
-  .legend {
-    display: flex;
-    gap: 16px;
-    margin-top: 8px;
-    justify-content: center;
-  }
+  /* Convergence chart (Panel E) */
+  .svg-chart { width: 100%; height: 220px; }
+  .convergence-zone { fill: rgba(16, 185, 129, 0.08); }
+  .legend { display: flex; gap: 16px; margin-top: 8px; justify-content: center; }
   .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
   .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
 
-  /* Stats row */
-  .stats {
+  /* Tool-call trace (Panel D) */
+  .trace-header {
     display: flex;
-    gap: 32px;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
   }
-  .stat-value {
-    font-size: 28px;
-    font-weight: 700;
-    line-height: 1;
-  }
-  .stat-label {
+  .trace-header:hover .card-title { color: var(--text); }
+  .trace-toggle { font-size: 12px; color: var(--text-dim); transition: transform 0.3s; }
+  .trace-toggle.open { transform: rotate(180deg); }
+  .trace-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+  .trace-body.open { max-height: 500px; overflow-y: auto; }
+  .trace-entry {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
     font-size: 11px;
-    color: var(--text-dim);
-    margin-top: 4px;
   }
-  .stat-value.green { color: var(--green); }
-  .stat-value.red { color: var(--red); }
-  .stat-value.blue { color: var(--accent); }
-  .stat-value.yellow { color: var(--yellow); }
+  .trace-round { color: var(--text-dim); width: 50px; flex-shrink: 0; }
+  .trace-tool { color: var(--cyan); width: 120px; flex-shrink: 0; }
+  .trace-cmd { color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .trace-status {
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .trace-status.success, .trace-status.executed { background: #064e3b; color: var(--green); }
+  .trace-status.blocked { background: #450a0a; color: var(--red); }
+  .trace-status.denied, .trace-status.proposed { background: #451a03; color: var(--yellow); }
+  .trace-status.error { background: #450a0a; color: var(--red); }
 
   /* Connection indicator */
-  .conn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    color: var(--text-dim);
-  }
-  .conn-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--red);
-  }
+  .conn { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
+  .conn-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); }
   .conn-dot.connected { background: var(--green); }
 
   /* Report link */
@@ -230,23 +267,23 @@
 <div class="grid">
   <!-- Pipeline Steps -->
   <div class="card full-width">
-    <div class="card-title">Pipeline — Iteration <span id="iterNum">0</span></div>
+    <div class="card-title">Pipeline -- Iteration <span id="iterNum">0</span></div>
     <div class="steps">
       <div class="step-box" id="step-diagnose">
         <div class="step-name">Diagnose</div>
         <div class="step-status" id="step-diagnose-status">waiting</div>
       </div>
-      <div class="step-arrow">→</div>
+      <div class="step-arrow">&rarr;</div>
       <div class="step-box" id="step-fix">
         <div class="step-name">Fix</div>
         <div class="step-status" id="step-fix-status">waiting</div>
       </div>
-      <div class="step-arrow">→</div>
+      <div class="step-arrow">&rarr;</div>
       <div class="step-box" id="step-attack">
         <div class="step-name">Attack</div>
         <div class="step-status" id="step-attack-status">waiting</div>
       </div>
-      <div class="step-arrow">→</div>
+      <div class="step-arrow">&rarr;</div>
       <div class="step-box" id="step-validate">
         <div class="step-name">Validate</div>
         <div class="step-status" id="step-validate-status">waiting</div>
@@ -254,41 +291,42 @@
     </div>
   </div>
 
-  <!-- Stats -->
-  <div class="card full-width">
-    <div class="card-title">Summary</div>
-    <div class="stats">
-      <div>
-        <div class="stat-value blue" id="statIter">0</div>
-        <div class="stat-label">iterations</div>
-      </div>
-      <div>
-        <div class="stat-value red" id="statFindings">0</div>
-        <div class="stat-label">findings</div>
-      </div>
-      <div>
-        <div class="stat-value green" id="statFixes">0</div>
-        <div class="stat-label">fixes applied</div>
-      </div>
-      <div>
-        <div class="stat-value yellow" id="statVulns">0</div>
-        <div class="stat-label">vulnerabilities</div>
-      </div>
-      <div>
-        <div class="stat-value" id="statTests" style="color:var(--text-dim)">—</div>
-        <div class="stat-label">tests</div>
-      </div>
+  <!-- Panel A: Timing Waterfall -->
+  <div class="card full-width" id="timingPanel">
+    <div class="card-title">Step Timing</div>
+    <div class="waterfall" id="waterfall">
+      <div class="wf-row"><div class="wf-label">diagnose</div><div class="wf-bar-bg"><div class="wf-bar diagnose" id="wf-diagnose" style="width:0%"></div></div><div class="wf-time" id="wft-diagnose">--</div></div>
+      <div class="wf-row"><div class="wf-label">fix</div><div class="wf-bar-bg"><div class="wf-bar fix" id="wf-fix" style="width:0%"></div></div><div class="wf-time" id="wft-fix">--</div></div>
+      <div class="wf-row"><div class="wf-label">attack</div><div class="wf-bar-bg"><div class="wf-bar attack" id="wf-attack" style="width:0%"></div></div><div class="wf-time" id="wft-attack">--</div></div>
+      <div class="wf-row"><div class="wf-label">validate</div><div class="wf-bar-bg"><div class="wf-bar validate" id="wf-validate" style="width:0%"></div></div><div class="wf-time" id="wft-validate">--</div></div>
     </div>
   </div>
 
-  <!-- Chart -->
+  <!-- Stats (Panel F: extended) -->
+  <div class="card full-width">
+    <div class="card-title">Summary</div>
+    <div class="stats">
+      <div><div class="stat-value blue" id="statIter">0</div><div class="stat-label">iterations</div></div>
+      <div><div class="stat-value red" id="statFindings">0</div><div class="stat-label">findings</div></div>
+      <div><div class="stat-value green" id="statFixes">0</div><div class="stat-label">fixes applied</div></div>
+      <div><div class="stat-value yellow" id="statVulns">0</div><div class="stat-label">vulnerabilities</div></div>
+      <div><div class="stat-value" id="statTests" style="color:var(--text-dim)">--</div><div class="stat-label">tests</div></div>
+      <div class="stat-divider"></div>
+      <div><div class="stat-value" id="statRounds" style="color:var(--purple)">0</div><div class="stat-label">LLM rounds</div></div>
+      <div><div class="stat-value green" id="statSafetyRate">--</div><div class="stat-label">safety rate</div></div>
+      <div><div class="stat-value yellow" id="statProposals">0</div><div class="stat-label">proposals</div></div>
+    </div>
+  </div>
+
+  <!-- Panel E: Convergence Chart -->
   <div class="card">
-    <div class="card-title">Findings Over Iterations</div>
-    <div class="chart-container" id="chart"></div>
+    <div class="card-title">Convergence</div>
+    <svg class="svg-chart" id="convergenceChart"></svg>
     <div class="legend">
       <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Findings</div>
       <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Fixes</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div> Vulnerabilities</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div> Vulns</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div> Test Pass %</div>
     </div>
   </div>
 
@@ -296,6 +334,44 @@
   <div class="card">
     <div class="card-title">Live Feed</div>
     <div class="feed" id="feed"></div>
+  </div>
+
+  <!-- Panel B: Safety Monitor -->
+  <div class="card">
+    <div class="card-title">Safety Enforcement</div>
+    <div class="safety-rings" id="safetyRings">
+      <div class="ring-wrap">
+        <svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="var(--surface2)" stroke-width="6"/><circle id="ringExec" cx="40" cy="40" r="32" fill="none" stroke="var(--green)" stroke-width="6" stroke-dasharray="201" stroke-dashoffset="201" stroke-linecap="round" transform="rotate(-90 40 40)" style="transition:stroke-dashoffset 0.8s ease"/></svg>
+        <div class="ring-value green" id="ringExecVal">0</div>
+        <div class="ring-label">Executed</div>
+      </div>
+      <div class="ring-wrap">
+        <svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="var(--surface2)" stroke-width="6"/><circle id="ringDenied" cx="40" cy="40" r="32" fill="none" stroke="var(--yellow)" stroke-width="6" stroke-dasharray="201" stroke-dashoffset="201" stroke-linecap="round" transform="rotate(-90 40 40)" style="transition:stroke-dashoffset 0.8s ease"/></svg>
+        <div class="ring-value yellow" id="ringDeniedVal">0</div>
+        <div class="ring-label">Denied</div>
+      </div>
+      <div class="ring-wrap">
+        <svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="var(--surface2)" stroke-width="6"/><circle id="ringBlocked" cx="40" cy="40" r="32" fill="none" stroke="var(--red)" stroke-width="6" stroke-dasharray="201" stroke-dashoffset="201" stroke-linecap="round" transform="rotate(-90 40 40)" style="transition:stroke-dashoffset 0.8s ease"/></svg>
+        <div class="ring-value red" id="ringBlockedVal">0</div>
+        <div class="ring-label">Blocked</div>
+      </div>
+    </div>
+    <div class="safety-log" id="safetyLog"></div>
+  </div>
+
+  <!-- Panel C: Infrastructure Topology -->
+  <div class="card">
+    <div class="card-title">Infrastructure</div>
+    <svg class="topo-svg" id="topoMap" viewBox="0 0 420 280"></svg>
+  </div>
+
+  <!-- Panel D: Tool-Call Trace -->
+  <div class="card full-width">
+    <div class="trace-header" onclick="toggleTrace()">
+      <div class="card-title" style="margin-bottom:0">Tool-Call Trace <span id="traceCount" style="color:var(--accent)">(0)</span></div>
+      <div class="trace-toggle" id="traceToggle">&#9660;</div>
+    </div>
+    <div class="trace-body" id="traceBody"></div>
   </div>
 </div>
 
@@ -305,28 +381,28 @@
 
 <script>
 const stepNames = ['diagnose', 'fix', 'attack', 'validate'];
-let ws;
-let reconnectTimer;
+let ws, reconnectTimer, elapsedTimer;
+let pipelineStartTime = null;
+let totalLLMRounds = 0;
+let totalProposals = 0;
+let stepTimings = {};
+let activeServers = new Set();
+let serverMap = {};
+let testMode = false;
 
 function connect() {
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
   ws = new WebSocket(`${proto}//${location.host}/ws`);
-
   ws.onopen = () => {
     document.getElementById('connDot').classList.add('connected');
     document.getElementById('connText').textContent = 'connected';
   };
-
   ws.onclose = () => {
     document.getElementById('connDot').classList.remove('connected');
     document.getElementById('connText').textContent = 'reconnecting...';
     reconnectTimer = setTimeout(connect, 2000);
   };
-
-  ws.onmessage = (e) => {
-    const msg = JSON.parse(e.data);
-    handleMessage(msg);
-  };
+  ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
 }
 
 function handleMessage(msg) {
@@ -337,13 +413,25 @@ function handleMessage(msg) {
     case 'pipeline_start':
       resetUI();
       setStatus('running');
+      serverMap = msg.data.servers || {};
+      pipelineStartTime = new Date(msg.data.started_at);
+      startElapsedTimer();
+      if (msg.data.mode === 'testing') {
+        applyTestModeLabels(msg.data);
+      } else {
+        renderTopology(serverMap);
+      }
       break;
     case 'iteration_start':
       document.getElementById('iterNum').textContent = msg.data.number;
       document.getElementById('statIter').textContent = msg.data.number;
+      stepTimings = {};
       stepNames.forEach(s => {
         document.getElementById(`step-${s}`).className = 'step-box';
         document.getElementById(`step-${s}-status`).textContent = 'waiting';
+        document.getElementById(`wf-${s}`).style.width = '0%';
+        document.getElementById(`wf-${s}`).classList.remove('active');
+        document.getElementById(`wft-${s}`).textContent = '--';
       });
       addFeedItem(`Iteration ${msg.data.number} started`, 'low');
       break;
@@ -351,10 +439,21 @@ function handleMessage(msg) {
       setStepActive(msg.data.step);
       break;
     case 'step_complete':
-      setStepDone(msg.data.step, msg.data.result);
+      setStepDone(msg.data.step, msg.data.result, msg.data.elapsed_seconds, msg.data.safety_summary);
+      break;
+    case 'tool_call':
+      addTraceEntry(msg.data);
+      if (testMode && msg.data.test_stats) {
+        updateTestModeStats(msg.data.test_stats);
+        const tLabel = msg.data.status === 'executed' ? 'PASS' : (msg.data.status === 'blocked' ? 'FAIL' : 'SKIP');
+        const fCls = msg.data.status === 'executed' ? 'low' : (msg.data.status === 'blocked' ? 'high' : 'medium');
+        addFeedItem(`[${msg.data.tool}] ${tLabel}: ${msg.data.args}`, fCls);
+        updateOSNodeStatus(msg.data.tool, msg.data.status);
+      }
       break;
     case 'pipeline_finish':
       setStatus(msg.data.status);
+      stopElapsedTimer();
       applyFullState(msg.data);
       document.getElementById('reportLink').style.display = 'inline-block';
       break;
@@ -362,34 +461,78 @@ function handleMessage(msg) {
 }
 
 function applyFullState(s) {
+  if (s.mode === 'testing' && !testMode) applyTestModeLabels(s);
   setStatus(s.status);
   document.getElementById('iterNum').textContent = s.current_iteration || 0;
   document.getElementById('statIter').textContent = (s.iterations || []).length;
-
-  let totalFindings = 0, totalFixes = 0, totalVulns = 0;
-  (s.iterations || []).forEach(it => {
-    const steps = it.steps || {};
-    if (steps.diagnose) totalFindings += (steps.diagnose.findings || []).length;
-    if (steps.fix) totalFixes += (steps.fix.findings || []).filter(f => f.applied).length;
-    if (steps.attack) totalVulns += (steps.attack.findings || []).length;
-  });
-  document.getElementById('statFindings').textContent = totalFindings;
-  document.getElementById('statFixes').textContent = totalFixes;
-  document.getElementById('statVulns').textContent = totalVulns;
-
-  const lastIt = (s.iterations || []).slice(-1)[0];
-  if (lastIt && lastIt.steps && lastIt.steps.validate) {
-    const v = lastIt.steps.validate;
-    const raw = v.raw || {};
-    document.getElementById('statTests').textContent = `${raw.passed || 0}/${raw.total || 0}`;
-    document.getElementById('statTests').style.color = v.success ? 'var(--green)' : 'var(--red)';
+  if (s.servers) {
+    serverMap = s.servers;
+    if (testMode) renderOSTargets(serverMap);
+    else renderTopology(serverMap);
+  }
+  if (s.started_at && (s.status === 'running')) {
+    pipelineStartTime = new Date(s.started_at);
   }
 
+  if (!testMode) {
+    let totalFindings = 0, totalFixes = 0, totalVulns = 0;
+    totalLLMRounds = 0; totalProposals = 0;
+    (s.iterations || []).forEach(it => {
+      const steps = it.steps || {};
+      if (steps.diagnose) totalFindings += (steps.diagnose.findings || []).length;
+      if (steps.fix) {
+        totalFixes += (steps.fix.findings || []).filter(f => f.applied).length;
+        const actions = (steps.fix.raw || {}).actions || [];
+        actions.forEach(a => {
+          totalLLMRounds += (a.tool_calls || []).length;
+          totalProposals += (a.proposed_changes || []).length;
+        });
+      }
+      if (steps.attack) totalVulns += (steps.attack.findings || []).length;
+    });
+    document.getElementById('statFindings').textContent = totalFindings;
+    document.getElementById('statFixes').textContent = totalFixes;
+    document.getElementById('statVulns').textContent = totalVulns;
+    document.getElementById('statRounds').textContent = totalLLMRounds;
+    document.getElementById('statProposals').textContent = totalProposals;
+
+    const lastIt = (s.iterations || []).slice(-1)[0];
+    if (lastIt && lastIt.steps && lastIt.steps.validate) {
+      const v = lastIt.steps.validate;
+      const raw = v.raw || {};
+      document.getElementById('statTests').textContent = `${raw.passed || 0}/${raw.total || 0}`;
+      document.getElementById('statTests').style.color = v.success ? 'var(--green)' : 'var(--red)';
+    }
+
+    if (s.safety_summary) updateSafety(s.safety_summary);
+  }
+
+  // Restore step box states from step_timings
+  if (s.step_timings) {
+    stepTimings = s.step_timings;
+    renderWaterfall();
+    Object.keys(s.step_timings).forEach(step => {
+      const el = document.getElementById(`step-${step}`);
+      if (el && s.step_timings[step].elapsed_seconds) el.className = 'step-box done';
+    });
+  }
+  if (s.current_step) {
+    const active = document.getElementById(`step-${s.current_step}`);
+    if (active && !active.classList.contains('done')) active.className = 'step-box active';
+  }
+  if (s.tool_calls) {
+    s.tool_calls.forEach(tc => addTraceEntry(tc));
+    if (testMode && s.tool_calls.length > 0) {
+      const last = s.tool_calls[s.tool_calls.length - 1];
+      if (last.test_stats) updateTestModeStats(last.test_stats);
+      s.tool_calls.forEach(tc => updateOSNodeStatus(tc.tool, tc.status));
+    }
+  }
   if (s.status !== 'idle' && s.status !== 'running') {
     document.getElementById('reportLink').style.display = 'inline-block';
+    stopElapsedTimer();
   }
-
-  updateChart(s.iterations || []);
+  updateConvergenceChart(s.iterations || []);
 }
 
 function setStatus(status) {
@@ -404,27 +547,55 @@ function setStepActive(step) {
     el.className = 'step-box active';
     document.getElementById(`step-${step}-status`).textContent = 'running...';
   }
+  const bar = document.getElementById(`wf-${step}`);
+  if (bar) { bar.style.width = '15%'; bar.classList.add('active'); }
   addFeedItem(`${step} started`, 'low');
 }
 
-function setStepDone(step, result) {
+function setStepDone(step, result, elapsed, safety) {
   const el = document.getElementById(`step-${step}`);
   if (!el) return;
   const ok = result.success !== false;
   el.className = `step-box ${ok ? 'done' : 'error'}`;
   document.getElementById(`step-${step}-status`).textContent = result.summary || (ok ? 'done' : 'error');
 
-  // Update stats
+  // Timing waterfall
+  if (elapsed) {
+    stepTimings[step] = { elapsed_seconds: elapsed };
+    renderWaterfall();
+  }
+
+  if (testMode) {
+    const phases = document.querySelectorAll('.step-box.done, .step-box.error').length;
+    document.getElementById('iterNum').textContent = phases;
+    document.getElementById('statIter').textContent = phases;
+    const stepLabel = document.querySelector(`#step-${step} .step-name`);
+    addFeedItem(`Phase ${phases}/4: ${stepLabel ? stepLabel.textContent : step} complete — ${result.summary}`, ok ? 'low' : 'high');
+    return;
+  }
+
+  // Stats
   if (step === 'diagnose') {
-    const count = (result.findings || []).length;
+    const findings = result.findings || [];
     document.getElementById('statFindings').textContent =
-      parseInt(document.getElementById('statFindings').textContent) + count;
-    (result.findings || []).forEach(f => addFeedItem(f.summary || JSON.stringify(f), severityClass(f.severity)));
+      parseInt(document.getElementById('statFindings').textContent) + findings.length;
+    findings.forEach(f => {
+      addFeedItem(f.summary || JSON.stringify(f), severityClass(f.severity));
+      if (f.server) activeServers.add(f.server);
+    });
+    highlightServers();
   }
   if (step === 'fix') {
     const applied = (result.findings || []).filter(f => f.applied).length;
     document.getElementById('statFixes').textContent =
       parseInt(document.getElementById('statFixes').textContent) + applied;
+    const actions = (result.raw || {}).actions || [];
+    actions.forEach(a => {
+      totalLLMRounds += (a.tool_calls || []).length;
+      totalProposals += (a.proposed_changes || []).length;
+    });
+    document.getElementById('statRounds').textContent = totalLLMRounds;
+    document.getElementById('statProposals').textContent = totalProposals;
   }
   if (step === 'attack') {
     const count = (result.findings || []).length;
@@ -437,8 +608,220 @@ function setStepDone(step, result) {
     document.getElementById('statTests').textContent = `${raw.passed || 0}/${raw.total || 0}`;
     document.getElementById('statTests').style.color = result.success ? 'var(--green)' : 'var(--red)';
   }
+  if (safety) updateSafety(safety);
 }
 
+// --- Panel A: Waterfall ---
+function renderWaterfall() {
+  let maxTime = 0.1;
+  stepNames.forEach(s => {
+    const t = (stepTimings[s] || {}).elapsed_seconds || 0;
+    if (t > maxTime) maxTime = t;
+  });
+  stepNames.forEach(s => {
+    const t = (stepTimings[s] || {}).elapsed_seconds || 0;
+    const bar = document.getElementById(`wf-${s}`);
+    const label = document.getElementById(`wft-${s}`);
+    if (t > 0) {
+      bar.style.width = `${Math.max((t / maxTime) * 100, 5)}%`;
+      bar.classList.remove('active');
+      bar.textContent = `${t.toFixed(1)}s`;
+      label.textContent = `${t.toFixed(1)}s`;
+    }
+  });
+}
+
+// --- Panel B: Safety ---
+function updateSafety(summary) {
+  const total = summary.total_tool_calls || 1;
+  const exec = summary.executed || 0;
+  const denied = summary.graylist_denied || 0;
+  const blocked = summary.blocked || 0;
+  const circ = 201; // 2*pi*32
+
+  document.getElementById('ringExecVal').textContent = exec;
+  document.getElementById('ringDeniedVal').textContent = denied;
+  document.getElementById('ringBlockedVal').textContent = blocked;
+  document.getElementById('ringExec').setAttribute('stroke-dashoffset', circ - (exec / total) * circ);
+  document.getElementById('ringDenied').setAttribute('stroke-dashoffset', circ - (denied / total) * circ);
+  document.getElementById('ringBlocked').setAttribute('stroke-dashoffset', circ - (blocked / total) * circ);
+
+  // Safety rate stat
+  const rate = total > 0 ? Math.round((exec / total) * 100) : 0;
+  const rateEl = document.getElementById('statSafetyRate');
+  rateEl.textContent = `${rate}%`;
+  rateEl.style.color = rate >= 90 ? 'var(--green)' : rate >= 70 ? 'var(--yellow)' : 'var(--red)';
+
+  // Safety log
+  const log = document.getElementById('safetyLog');
+  log.innerHTML = '';
+  (summary.events || []).slice(-10).reverse().forEach(ev => {
+    const cls = ev.type === 'blocked' ? 'blocked' : (ev.type === 'denied' || ev.type === 'proposed') ? 'denied' : 'executed';
+    const div = document.createElement('div');
+    div.className = `safety-event ${cls}`;
+    div.innerHTML = `<span class="se-badge ${cls}">${ev.type}</span><span class="se-cmd">${escHtml(ev.command || ev.args || '')}</span>`;
+    log.appendChild(div);
+  });
+}
+
+// --- Panel C: Topology ---
+function renderTopology(servers) {
+  const svg = document.getElementById('topoMap');
+  if (!servers || !Object.keys(servers).length) {
+    svg.innerHTML = '<text x="210" y="140" fill="#64748b" font-size="12" text-anchor="middle" font-family="monospace">No server data</text>';
+    return;
+  }
+  const nodes = {
+    lb:         { x: 180, y: 20,  label: 'LB' },
+    app1:       { x: 100, y: 90,  label: 'App 1' },
+    app2:       { x: 260, y: 90,  label: 'App 2' },
+    rabbitmq:   { x: 180, y: 150, label: 'RabbitMQ' },
+    consumer:   { x: 100, y: 210, label: 'Consumer' },
+    postgresql: { x: 260, y: 210, label: 'PostgreSQL' },
+    elk:        { x: 370, y: 130, label: 'ELK' },
+  };
+  const links = [
+    ['lb','app1'],['lb','app2'],['app1','rabbitmq'],['app2','rabbitmq'],
+    ['rabbitmq','consumer'],['consumer','postgresql'],
+  ];
+  let html = '';
+  // Links
+  links.forEach(([a, b]) => {
+    if (nodes[a] && nodes[b]) {
+      html += `<line class="topo-link" x1="${nodes[a].x+35}" y1="${nodes[a].y+20}" x2="${nodes[b].x+35}" y2="${nodes[b].y+20}"/>`;
+    }
+  });
+  // ELK dashed links from all
+  Object.keys(nodes).forEach(k => {
+    if (k !== 'elk' && nodes[k]) {
+      html += `<line class="topo-link" x1="${nodes[k].x+35}" y1="${nodes[k].y+20}" x2="${nodes.elk.x+35}" y2="${nodes.elk.y+20}" stroke-dasharray="4,4" opacity="0.4"/>`;
+    }
+  });
+  // Nodes
+  Object.entries(nodes).forEach(([key, n]) => {
+    const ip = servers[key] || '';
+    html += `<g class="topo-node" id="topo-${key}">
+      <rect x="${n.x}" y="${n.y}" width="70" height="40"/>
+      <text class="node-role" x="${n.x+35}" y="${n.y+17}" text-anchor="middle">${n.label}</text>
+      <text x="${n.x+35}" y="${n.y+31}" text-anchor="middle" font-size="9">${ip}</text>
+    </g>`;
+  });
+  svg.innerHTML = html;
+}
+
+function highlightServers() {
+  activeServers.forEach(s => {
+    // Match by IP or role name
+    Object.entries(serverMap).forEach(([role, ip]) => {
+      if (s === ip || s === role || s.includes(role)) {
+        const node = document.getElementById(`topo-${role}`);
+        if (node) node.classList.add('finding');
+      }
+    });
+  });
+}
+
+// --- Panel D: Trace ---
+let traceCount = 0;
+function addTraceEntry(data) {
+  traceCount++;
+  document.getElementById('traceCount').textContent = `(${traceCount})`;
+  const body = document.getElementById('traceBody');
+  const div = document.createElement('div');
+  div.className = 'trace-entry';
+  const args = typeof data.args === 'string' ? tryParseCmd(data.args) : JSON.stringify(data.args);
+  div.innerHTML = `
+    <span class="trace-round">R${data.round || 0}</span>
+    <span class="trace-tool">${escHtml(data.tool || '')}</span>
+    <span class="trace-cmd" title="${escHtml(args)}">${escHtml(args)}</span>
+    <span class="trace-status ${data.status || ''}">${data.status || '?'}</span>`;
+  body.prepend(div);
+  if (body.children.length > 100) body.lastChild.remove();
+}
+
+function tryParseCmd(s) {
+  try { const o = JSON.parse(s); return o.command || o.path || s; } catch { return s; }
+}
+
+function toggleTrace() {
+  const body = document.getElementById('traceBody');
+  const toggle = document.getElementById('traceToggle');
+  body.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+
+// --- Panel E: Convergence Chart ---
+function updateConvergenceChart(iterations) {
+  const svg = document.getElementById('convergenceChart');
+  if (!iterations || !iterations.length) { svg.innerHTML = ''; return; }
+  const w = svg.clientWidth || 500;
+  const h = 200;
+  const pad = { t: 20, r: 40, b: 35, l: 45 };
+  const pw = w - pad.l - pad.r;
+  const ph = h - pad.t - pad.b;
+
+  const data = iterations.map(it => {
+    const steps = it.steps || {};
+    const f = steps.diagnose ? (steps.diagnose.findings || []).length : 0;
+    const x = steps.fix ? (steps.fix.findings || []).filter(a => a.applied).length : 0;
+    const v = steps.attack ? (steps.attack.findings || []).length : 0;
+    const raw = (steps.validate || {}).raw || {};
+    const passRate = raw.total > 0 ? Math.round((raw.passed / raw.total) * 100) : 0;
+    return { num: it.number, findings: f, fixes: x, vulns: v, passRate };
+  });
+
+  let maxVal = Math.max(1, ...data.flatMap(d => [d.findings, d.fixes, d.vulns, 10]));
+  const xStep = data.length > 1 ? pw / (data.length - 1) : pw / 2;
+  function yv(val) { return pad.t + ph - (val / maxVal) * ph; }
+  function yp(pct) { return pad.t + ph - (pct / 100) * ph; }
+  function xp(i) { return pad.l + (data.length > 1 ? i * xStep : pw / 2); }
+
+  let html = '';
+  // Convergence zone (0 findings area)
+  html += `<rect class="convergence-zone" x="${pad.l}" y="${yv(1)}" width="${pw}" height="${pad.t + ph - yv(1)}"/>`;
+  // Grid
+  for (let i = 0; i <= 4; i++) {
+    const gy = pad.t + (ph / 4) * i;
+    const val = Math.round(maxVal * (1 - i / 4));
+    html += `<line x1="${pad.l}" y1="${gy}" x2="${w-pad.r}" y2="${gy}" stroke="#1e2d3d" stroke-width="1"/>`;
+    html += `<text x="${pad.l-8}" y="${gy+4}" fill="#64748b" font-size="9" text-anchor="end" font-family="monospace">${val}</text>`;
+  }
+  // X labels
+  data.forEach((d, i) => {
+    html += `<text x="${xp(i)}" y="${h-8}" fill="#64748b" font-size="9" text-anchor="middle" font-family="monospace">#${d.num}</text>`;
+  });
+  // Lines
+  const series = [
+    { key: 'findings', color: '#ef4444', yFn: v => yv(v) },
+    { key: 'fixes', color: '#10b981', yFn: v => yv(v) },
+    { key: 'vulns', color: '#f59e0b', yFn: v => yv(v) },
+    { key: 'passRate', color: '#06b6d4', yFn: v => yp(v) },
+  ];
+  series.forEach(s => {
+    if (data.every(d => d[s.key] === 0)) return;
+    const points = data.map((d, i) => `${xp(i)},${s.yFn(d[s.key])}`).join(' ');
+    html += `<polyline points="${points}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round"/>`;
+    data.forEach((d, i) => {
+      html += `<circle cx="${xp(i)}" cy="${s.yFn(d[s.key])}" r="3.5" fill="${s.color}"/>`;
+    });
+  });
+  svg.innerHTML = html;
+}
+
+// --- Panel F: Elapsed Timer ---
+function startElapsedTimer() {
+  stopElapsedTimer();
+  elapsedTimer = setInterval(() => {
+    if (!pipelineStartTime) return;
+    const diff = Math.floor((Date.now() - pipelineStartTime.getTime()) / 1000);
+    const m = Math.floor(diff / 60);
+    const s = diff % 60;
+    document.getElementById('statElapsed').textContent = `${m}:${String(s).padStart(2,'0')}`;
+  }, 1000);
+}
+function stopElapsedTimer() { if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; } }
+
+// --- Utilities ---
 function severityClass(sev) {
   if (!sev) return 'low';
   sev = sev.toUpperCase();
@@ -456,42 +839,8 @@ function addFeedItem(text, cls) {
   if (feed.children.length > 100) feed.lastChild.remove();
 }
 
-function updateChart(iterations) {
-  const container = document.getElementById('chart');
-  container.innerHTML = '';
-  if (!iterations.length) return;
-
-  let maxVal = 1;
-  const data = iterations.map(it => {
-    const steps = it.steps || {};
-    const f = steps.diagnose ? (steps.diagnose.findings || []).length : 0;
-    const x = steps.fix ? (steps.fix.findings || []).filter(a => a.applied).length : 0;
-    const v = steps.attack ? (steps.attack.findings || []).length : 0;
-    maxVal = Math.max(maxVal, f, x, v);
-    return { num: it.number, findings: f, fixes: x, vulns: v };
-  });
-
-  data.forEach(d => {
-    const group = document.createElement('div');
-    group.className = 'chart-bar-group';
-    const bars = document.createElement('div');
-    bars.className = 'chart-bars';
-
-    ['findings', 'fixes', 'vulns'].forEach(key => {
-      const bar = document.createElement('div');
-      bar.className = `chart-bar ${key}`;
-      bar.style.height = `${(d[key] / maxVal) * 140}px`;
-      bar.title = `${key}: ${d[key]}`;
-      bars.appendChild(bar);
-    });
-
-    const label = document.createElement('div');
-    label.className = 'chart-label';
-    label.textContent = `#${d.num}`;
-    group.appendChild(bars);
-    group.appendChild(label);
-    container.appendChild(group);
-  });
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function resetUI() {
@@ -499,11 +848,113 @@ function resetUI() {
   document.getElementById('statFindings').textContent = '0';
   document.getElementById('statFixes').textContent = '0';
   document.getElementById('statVulns').textContent = '0';
-  document.getElementById('statTests').textContent = '—';
+  document.getElementById('statTests').textContent = '--';
   document.getElementById('statTests').style.color = 'var(--text-dim)';
+  document.getElementById('statElapsed').textContent = '0:00';
+  document.getElementById('statRounds').textContent = '0';
+  document.getElementById('statSafetyRate').textContent = '--';
+  document.getElementById('statProposals').textContent = '0';
   document.getElementById('feed').innerHTML = '';
-  document.getElementById('chart').innerHTML = '';
+  document.getElementById('convergenceChart').innerHTML = '';
   document.getElementById('reportLink').style.display = 'none';
+  document.getElementById('traceBody').innerHTML = '';
+  document.getElementById('safetyLog').innerHTML = '';
+  traceCount = 0; totalLLMRounds = 0; totalProposals = 0;
+  activeServers = new Set(); stepTimings = {};
+  testMode = false;
+  document.getElementById('traceCount').textContent = '(0)';
+  stepNames.forEach(s => {
+    document.getElementById(`wf-${s}`).style.width = '0%';
+    document.getElementById(`wf-${s}`).textContent = '';
+    document.getElementById(`wf-${s}`).classList.remove('active');
+    document.getElementById(`wft-${s}`).textContent = '--';
+  });
+  ['ringExec','ringDenied','ringBlocked'].forEach(id => document.getElementById(id).setAttribute('stroke-dashoffset', 201));
+  ['ringExecVal','ringDeniedVal','ringBlockedVal'].forEach(id => document.getElementById(id).textContent = '0');
+}
+
+// --- Test Mode ---
+function applyTestModeLabels(data) {
+  testMode = true;
+  document.querySelector('.header h1').innerHTML = '<span>sysadmin-ai</span> tests';
+  const ptitle = document.getElementById('iterNum').parentElement;
+  ptitle.innerHTML = 'Test Suite — Phase <span id="iterNum" style="color:var(--accent)">0</span>/4';
+  const labels = data.step_labels || {diagnose:'Connectivity',fix:'Deployment',attack:'SysadminAi',validate:'Security'};
+  Object.entries(labels).forEach(([step, label]) => {
+    const el = document.querySelector(`#step-${step} .step-name`);
+    if (el) el.textContent = label;
+  });
+  const wfMap = {diagnose:'connect',fix:'deploy',attack:'sysadmin',validate:'security'};
+  document.querySelectorAll('.wf-row').forEach(row => {
+    stepNames.forEach(s => { if (row.querySelector(`#wf-${s}`) && wfMap[s]) row.querySelector('.wf-label').textContent = wfMap[s]; });
+  });
+  const sl = (id, text) => { const e = document.getElementById(id); if (e) { const l = e.parentElement.querySelector('.stat-label'); if (l) l.textContent = text; } };
+  sl('statIter','phases'); sl('statFindings','failed'); sl('statFixes','passed');
+  sl('statVulns','skipped'); sl('statRounds','tests/sec'); sl('statSafetyRate','pass rate');
+  sl('statProposals','OS targets');
+  document.getElementById('statProposals').textContent = Object.keys(data.servers || {}).length;
+  document.getElementById('statFindings').style.color = 'var(--red)';
+  document.getElementById('statFixes').style.color = 'var(--green)';
+  const rl = (valId, text) => { const e = document.getElementById(valId); if (e && e.parentElement) { const l = e.parentElement.querySelector('.ring-label'); if (l) l.textContent = text; } };
+  rl('ringExecVal','PASSED'); rl('ringDeniedVal','SKIPPED'); rl('ringBlockedVal','FAILED');
+  const topoCard = document.getElementById('topoMap'); if (topoCard) { const ct = topoCard.closest('.card'); if (ct) { const t = ct.querySelector('.card-title'); if (t) t.textContent = 'OS Targets'; } }
+  const safeCard = document.getElementById('safetyRings'); if (safeCard) { const ct = safeCard.closest('.card'); if (ct) { const t = ct.querySelector('.card-title'); if (t) t.textContent = 'Test Results'; } }
+  renderOSTargets(data.servers || {});
+}
+
+function updateTestModeStats(stats) {
+  document.getElementById('statFixes').textContent = stats.passed;
+  document.getElementById('statFindings').textContent = stats.failed;
+  document.getElementById('statVulns').textContent = stats.skipped;
+  document.getElementById('statTests').textContent = stats.total;
+  document.getElementById('statTests').style.color = 'var(--text)';
+  const total = stats.total || 1;
+  const rate = Math.round((stats.passed / total) * 100);
+  const rateEl = document.getElementById('statSafetyRate');
+  rateEl.textContent = `${rate}%`;
+  rateEl.style.color = rate >= 90 ? 'var(--green)' : rate >= 70 ? 'var(--yellow)' : 'var(--red)';
+  if (pipelineStartTime) {
+    const elapsed = (Date.now() - pipelineStartTime.getTime()) / 1000;
+    if (elapsed > 0) document.getElementById('statRounds').textContent = (stats.total / elapsed).toFixed(1);
+  }
+  const circ = 201;
+  document.getElementById('ringExecVal').textContent = stats.passed;
+  document.getElementById('ringDeniedVal').textContent = stats.skipped;
+  document.getElementById('ringBlockedVal').textContent = stats.failed;
+  document.getElementById('ringExec').setAttribute('stroke-dashoffset', circ - (stats.passed / Math.max(total,1)) * circ);
+  document.getElementById('ringDenied').setAttribute('stroke-dashoffset', circ - (stats.skipped / Math.max(total,1)) * circ);
+  document.getElementById('ringBlocked').setAttribute('stroke-dashoffset', circ - (stats.failed / Math.max(total,1)) * circ);
+}
+
+function renderOSTargets(servers) {
+  const svg = document.getElementById('topoMap');
+  const names = Object.keys(servers);
+  if (!names.length) { svg.innerHTML = '<text x="210" y="140" fill="#64748b" font-size="12" text-anchor="middle" font-family="monospace">No OS targets</text>'; return; }
+  const cols = 3, boxW = 120, boxH = 50, gapX = 16, gapY = 16;
+  const rows = Math.ceil(names.length / cols);
+  const totalW = cols * boxW + (cols - 1) * gapX;
+  const totalH = rows * boxH + (rows - 1) * gapY;
+  const offX = (420 - totalW) / 2, offY = (280 - totalH) / 2;
+  let html = '';
+  names.forEach((name, i) => {
+    const x = offX + (i % cols) * (boxW + gapX);
+    const y = offY + Math.floor(i / cols) * (boxH + gapY);
+    const short = name.replace('-stream','').replace('almalinux','alma');
+    html += `<g class="topo-node" id="topo-${name}"><rect x="${x}" y="${y}" width="${boxW}" height="${boxH}"/>` +
+      `<text class="node-role" x="${x+boxW/2}" y="${y+22}" text-anchor="middle">${short}</text>` +
+      `<text x="${x+boxW/2}" y="${y+38}" text-anchor="middle" font-size="9" id="topo-status-${name}">pending</text></g>`;
+  });
+  svg.innerHTML = html;
+}
+
+function updateOSNodeStatus(osName, status) {
+  const node = document.getElementById(`topo-${osName}`);
+  if (!node) return;
+  if (status === 'blocked') { node.classList.add('finding'); node.classList.remove('healthy'); }
+  else if (status === 'executed') { if (!node.classList.contains('finding')) node.classList.add('healthy'); }
+  node.classList.add('active');
+  const st = document.getElementById(`topo-status-${osName}`);
+  if (st) st.textContent = 'testing...';
 }
 
 connect();

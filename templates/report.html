@@ -190,6 +190,16 @@
 </div>
 
 <div class="section">
+  <div class="section-title">Step Timing Breakdown</div>
+  <div id="timingBreakdown" class="chart-card" style="padding:20px"></div>
+</div>
+
+<div class="section">
+  <div class="section-title">Safety Summary</div>
+  <div class="metrics" id="safetyMetrics"></div>
+</div>
+
+<div class="section">
   <div class="section-title">Iteration Timeline</div>
   <div class="timeline" id="timeline"></div>
 </div>
@@ -264,6 +274,12 @@ function render() {
   // SVG Chart
   renderChart(perIter);
 
+  // Timing breakdown
+  renderTimingBreakdown(iterations);
+
+  // Safety summary
+  renderSafetyMetrics(iterations);
+
   // Timeline
   renderTimeline(iterations);
 }
@@ -315,6 +331,57 @@ function renderChart(data) {
   });
 
   svg.innerHTML = svgContent;
+}
+
+function renderTimingBreakdown(iterations) {
+  const el = document.getElementById('timingBreakdown');
+  const colors = { diagnose: '#06b6d4', fix: '#3b82f6', attack: '#f59e0b', validate: '#8b5cf6' };
+  let html = '<div style="display:flex;flex-direction:column;gap:12px">';
+  iterations.forEach(it => {
+    const timings = it.step_timings || {};
+    const steps = ['diagnose','fix','attack','validate'];
+    const total = steps.reduce((s, k) => s + ((timings[k] || {}).elapsed_seconds || 0), 0);
+    html += `<div><div style="font-size:12px;font-weight:600;margin-bottom:6px">Iteration ${it.number} <span style="color:var(--text-dim)">(${total.toFixed(1)}s total)</span></div>`;
+    html += '<div style="display:flex;height:24px;border-radius:4px;overflow:hidden">';
+    steps.forEach(s => {
+      const t = (timings[s] || {}).elapsed_seconds || 0;
+      const pct = total > 0 ? (t / total) * 100 : 0;
+      if (pct > 0) html += `<div style="width:${pct}%;background:${colors[s]};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:white" title="${s}: ${t.toFixed(1)}s">${pct > 12 ? s + ' ' + t.toFixed(1) + 's' : ''}</div>`;
+    });
+    html += '</div></div>';
+  });
+  html += '</div>';
+  html += '<div style="display:flex;gap:16px;margin-top:12px;justify-content:center">';
+  Object.entries(colors).forEach(([k,c]) => { html += `<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim)"><div style="width:8px;height:8px;border-radius:2px;background:${c}"></div>${k}</div>`; });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderSafetyMetrics(iterations) {
+  const el = document.getElementById('safetyMetrics');
+  let totalTC = 0, totalBlocked = 0, totalDenied = 0, totalRounds = 0;
+  iterations.forEach(it => {
+    const safety = it.safety_summary;
+    if (safety) {
+      totalTC += safety.total_tool_calls || 0;
+      totalBlocked += safety.blocked || 0;
+      totalDenied += safety.graylist_denied || 0;
+    }
+    const fixActions = ((it.steps || {}).fix || {}).raw;
+    if (fixActions) {
+      (fixActions.actions || []).forEach(a => { totalRounds += (a.tool_calls || []).length; });
+    }
+  });
+  const executed = Math.max(totalTC - totalBlocked - totalDenied, 0);
+  const rate = totalTC > 0 ? Math.round((executed / totalTC) * 100) : 0;
+  const data = [
+    { value: totalTC, label: 'Tool Calls', color: 'var(--accent)' },
+    { value: executed, label: 'Executed', color: 'var(--green)' },
+    { value: totalBlocked, label: 'Blocked', color: 'var(--red)' },
+    { value: totalDenied, label: 'Denied', color: 'var(--yellow)' },
+    { value: rate + '%', label: 'Safety Rate', color: rate >= 90 ? 'var(--green)' : 'var(--yellow)' },
+  ];
+  el.innerHTML = data.map(m => `<div class="metric"><div class="metric-value" style="color:${m.color}">${m.value}</div><div class="metric-label">${m.label}</div></div>`).join('');
 }
 
 function renderTimeline(iterations) {
